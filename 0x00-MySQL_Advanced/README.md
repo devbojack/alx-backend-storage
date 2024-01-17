@@ -5,7 +5,7 @@
 | Back-end | SQL | MySQL |
 | | | |
 
-By [Justus Lolwerikoi](htpps://github.com/devbojack)
+By [Justus Lolwerikoi](https://github.com/devbojack)
 
 ### Concepts
 *For this project, we expect you to look at this concept:*

@@ -61,21 +61,6 @@ def replay(func: Callable, cache) -> None:
         input_str = input_data.decode("utf-8")
         output_str = output_data.decode("utf-8")
         print(f"{key}(*({input_str},)) -> {output_str}")
-# def replay(cache, method: Callable) -> None:
-#     """Displays the history of calls for a particular function"""
-#     key = method.__qualname__
-#     i = "".join([key, ":inputs"])
-#     o = "".join([key, ":outputs"])
-
-#     inputs = cache._redis.lrange(i, 0, -1)
-#     outputs = cache._redis.lrange(o, 0, -1)
-
-#     print(f"{key} was called {len(inputs)} times:")
-
-#     for input_str, output_str in zip(inputs, outputs):
-#         inputs_tuple = eval(input_str.decode("utf-8"))
-#         output = output_str.decode("utf-8")
-#         print(f"{key}(*{inputs_tuple}) -> {output}")
 
 
 class Cache:

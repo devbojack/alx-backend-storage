@@ -47,15 +47,3 @@ def get_page(url: str) -> str:
     """Obtain the HTML content of a particular URL and returns it"""
     response = requests.get(url)
     return response.text
-
-
-# Example usage:
-if __name__ == "__main__":
-    url = "http://slowwly.robertomurray.co.uk"
-    html_content = get_page(url)
-    print(html_content)
-
-    # Check access count for the URL
-    access_count_key = f"count:{url}"
-    access_count = redis_conn.get(access_count_key)
-    print(f"{url} was accessed {access_count} times.")

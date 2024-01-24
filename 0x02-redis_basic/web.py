@@ -1,54 +1,55 @@
 #!/usr/bin/env python3
 """Implementing an expiring web cache and tracker"""
-import requests, redis
+import redis
+import requests
+from typing import Callable
 from functools import wraps
 
-# Initialize Redis connection
-redis_conn = redis.StrictRedis(host='localhost', port=6379, decode_responses=True)
+redis_conn = redis.Redis()
 
-def track_access_count(url):
-    """
-    Decorator to track the access count of a URL
-    """
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            key = f"count:{url}"
-            redis_conn.incr(key)
-            return func(*args, **kwargs)
-        return wrapper
-    return decorator
 
-def cache_page(expiration_time=10):
-    """
-    Decorator to cache the result of a function with a specified expiration time
-    """
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            url = args[0]
-            key = f"cache:{url}"
+def track_access_count(fn: Callable) -> Callable:
+    """ Decorator to track the access count of a URL """
 
-            # Check if the result is already in the cache
-            cached_result = redis_conn.get(key)
-            if cached_result is not None:
-                return cached_result
+    @wraps(fn)
+    def wrapper(url):
+        """ Wrapper for decorator """
+        redis_conn.incr(f"count:{url}")
+        return fn(url)
 
-            # If not in the cache, call the function and cache the result
-            result = func(*args, **kwargs)
-            redis_conn.setex(key, expiration_time, result)
-            return result
-        return wrapper
-    return decorator
+    return wrapper
 
-@track_access_count("http://slowwly.robertomurray.co.uk")
-@cache_page(expiration_time=10)
-def get_page(url):
+
+def cache_page(fn: Callable) -> Callable:
     """
-    Retrieves the HTML content of a URL using the requests module
+    Decorator to cache the result of func with a specified expiration time
     """
+
+    @wraps(fn)
+    def wrapper(url):
+        """ Wrapper for decorator """
+        key = f"cached:{url}"
+
+        # Check if the result is already in the cache
+        cached_response = redis_conn.get(key)
+        if cached_response:
+            return cached_response.decode('utf-8')
+
+        # If not in the cache, call the function and cache the result
+        result = fn(url)
+        redis_conn.setex(key, 10, result)
+        return result
+
+    return wrapper
+
+
+@track_access_count
+@cache_page
+def get_page(url: str) -> str:
+    """Obtain the HTML content of a particular URL and returns it"""
     response = requests.get(url)
     return response.text
+
 
 # Example usage:
 url = "http://slowwly.robertomurray.co.uk"

@@ -44,21 +44,6 @@ def call_history(method: Callable) -> Callable:
     return wrapper
 
 
-def replay(self, method: Callable) -> None:
-    """Displays the history of calls for a particular function"""
-    key = method.__qualname__
-    i = "".join([key, ":inputs"])
-    o = "".join([key, ":outputs"])
-
-    inputs = self._redis.lrange(i, 0, -1)
-    outputs = self._redis.lrange(o, 0, -1)
-
-    print(f"{key} was called {len(inputs)} times:")
-    for inp, out in zip(inputs, outputs):
-        print(f"{key}(*{inp.decode('utf-8')
-                        .strip('()').split(', ')}) -> {out.decode('utf-8')}")
-
-
 class Cache:
     """Cache class"""
 
@@ -94,3 +79,19 @@ class Cache:
     def get_str(self: bytes) -> str:
         """Gets string"""
         return self.decode("utf-8")
+    
+    def replay(self, method: Callable) -> None:
+        """Displays the history of calls for a particular function"""
+        key = method.__qualname__
+        i = "".join([key, ":inputs"])
+        o = "".join([key, ":outputs"])
+
+        inputs = self._redis.lrange(i, 0, -1)
+        outputs = self._redis.lrange(o, 0, -1)
+
+        print(f"{key} was called {len(inputs)} times:")
+
+        for input_str, output_str in zip(inputs, outputs):
+            inputs_tuple = eval(input_str.decode("utf-8"))
+            output = output_str.decode("utf-8")
+            print(f"{key}(*{inputs_tuple}) -> {output}")

@@ -46,7 +46,6 @@ def call_history(method: Callable) -> Callable:
 
 def replay(cache, method: Callable) -> None:
     """Displays the history of calls for a particular function"""
-
     key = method.__qualname__
     i = "".join([key, ":inputs"])
     o = "".join([key, ":outputs"])

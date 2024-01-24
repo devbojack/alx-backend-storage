@@ -1,34 +1,61 @@
-#!/usr/bin/env python3
-""" expiring web cache module """
-
 import redis
 import requests
-from typing import Callable
 from functools import wraps
+from typing import Callable
 
-redis = redis.Redis()
+redis_conn = redis.Redis()
 
 
-def wrap_requests(fn: Callable) -> Callable:
-    """ Decorator wrapper """
+def track_access_count(fn: Callable) -> Callable:
+    """ Decorator to track the access count of a URL """
 
     @wraps(fn)
     def wrapper(url):
-        """ Wrapper for decorator guy """
-        redis.incr(f"count:{url}")
-        cached_response = redis.get(f"cached:{url}")
-        if cached_response:
-            return cached_response.decode('utf-8')
-        result = fn(url)
-        redis.setex(f"cached:{url}", 10, result)
-        return result
+        """ Wrapper for decorator """
+        redis_conn.incr(f"count:{url}")
+        return fn(url)
 
     return wrapper
 
 
-@wrap_requests
-def get_page(url: str) -> str:
-    """get page self descriptive
+def cache_page(expiration_time=10):
     """
+    Decorator to cache the result of a function with
+    a specified expiration time
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(url):
+            key = f"cached:{url}"
+
+            # Check if the result is already in the cache
+            cached_response = redis_conn.get(key)
+            if cached_response is not None:
+                return cached_response.decode('utf-8')
+
+            # If not in the cache, call the function and cache the result
+            result = func(url)
+            redis_conn.setex(key, expiration_time, result)
+            return result
+        return wrapper
+    return decorator
+
+
+@track_access_count
+@cache_page(expiration_time=10)
+def get_page(url: str) -> str:
+    """Obtain the HTML content of a particular URL and returns it"""
     response = requests.get(url)
     return response.text
+
+
+# Example usage:
+if __name__ == "__main__":
+    url = "http://slowwly.robertomurray.co.uk"
+    html_content = get_page(url)
+    print(html_content)
+
+    # Check access count for the URL
+    access_count_key = f"count:{url}"
+    access_count = redis_conn.get(access_count_key)
+    print(f"{url} was accessed {access_count} times.")

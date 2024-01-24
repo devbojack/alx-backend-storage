@@ -1,17 +1,20 @@
+#!/usr/bin/env python3
+"""Expiring web cache module"""
+
 import redis
 import requests
-from functools import wraps
 from typing import Callable
+from functools import wraps
 
 redis_conn = redis.Redis()
 
 
 def track_access_count(fn: Callable) -> Callable:
-    """ Decorator to track the access count of a URL """
+    """Decorator to track the access count of a URL"""
 
     @wraps(fn)
     def wrapper(url):
-        """ Wrapper for decorator """
+        """Wrapper for decorator"""
         redis_conn.incr(f"count:{url}")
         return fn(url)
 

@@ -8,6 +8,7 @@ import redis
 UnionOfTypes = Union[str, bytes, int, float]
 
 
+
 class Cache:
     """Cache class"""
 
@@ -27,3 +28,19 @@ class Cache:
         key = str(uuid4())
         self._redis.mset({key: data})
         return key
+
+    def get(self, key: str, fn: Optional[Callable] = None) \
+            -> UnionOfTypes:
+        """Converts the data back to the desired format"""
+        if fn:
+            return fn(self._redis.get(key))
+        data = self._redis.get(key)
+        return data
+
+    def get_int(self: bytes) -> int:
+        """Gets int"""
+        return int.from_bytes(self, sys.byteorder)
+
+    def get_str(self: bytes) -> str:
+        """Gets string"""
+        return self.decode("utf-8")

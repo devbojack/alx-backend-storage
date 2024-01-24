@@ -25,6 +25,23 @@ def count_calls(method: Callable) -> Callable:
     return wrapper
 
 
+def call_history(method: Callable) -> Callable:
+    """
+    Stores the history of inputs and outputs for a particular function
+    """
+    key = method.__qualname__
+    i = "".join([key, ":inputs"])
+    o = "".join([key, ":outputs"])
+
+    @wraps(method)
+    def wrapper(self, *args, **kwargs):
+        """Wrapper"""
+        self._redis.rpush(i, str(args))
+        res = method(self, *args, **kwargs)
+        self._redis.rpush(o, str(res))
+        return res
+
+    return wrapper
 
 
 class Cache:
@@ -40,7 +57,7 @@ class Cache:
     def store(self, data: UnionOfTypes) -> str:
         """
         Takes a data argument
-        Generate a random key 
+        Generate a random key
         Returns a string
         """
         key = str(uuid4())

@@ -44,15 +44,15 @@ def call_history(method: Callable) -> Callable:
     return wrapper
 
 
-def replay(self, method: Callable) -> None:
+def replay(cache, method: Callable) -> None:
     """Displays the history of calls for a particular function"""
 
     key = method.__qualname__
     i = "".join([key, ":inputs"])
     o = "".join([key, ":outputs"])
 
-    inputs = self._redis.lrange(i, 0, -1)
-    outputs = self._redis.lrange(o, 0, -1)
+    inputs = cache._redis.lrange(i, 0, -1)
+    outputs = cache._redis.lrange(o, 0, -1)
 
     print(f"{key} was called {len(inputs)} times:")
 

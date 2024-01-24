@@ -55,7 +55,8 @@ def replay(self, method: Callable) -> None:
 
     print(f"{key} was called {len(inputs)} times:")
     for inp, out in zip(inputs, outputs):
-        print(f"{key}(*{inp.decode('utf-8').strip('()').split(', ')}) -> {out.decode('utf-8')}")
+        print(f"{key}(*{inp.decode('utf-8')
+                        .strip('()').split(', ')}) -> {out.decode('utf-8')}")
 
 
 class Cache:
